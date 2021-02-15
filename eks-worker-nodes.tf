@@ -39,9 +39,11 @@ resource "aws_iam_role_policy_attachment" "demo-node-AmazonEC2ContainerRegistryR
 }
 
 resource "aws_eks_node_group" "demo" {
+  count = 1
   cluster_name    = aws_eks_cluster.demo.name
   node_group_name = "demo"
   node_role_arn   = aws_iam_role.demo-node.arn
+  instance_typ =  t2.small
   subnet_ids      = aws_subnet.demo[*].id
 
   scaling_config {
