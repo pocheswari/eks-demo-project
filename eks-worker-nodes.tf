@@ -41,7 +41,7 @@ resource "aws_iam_role_policy_attachment" "demo-node-AmazonEC2ContainerRegistryR
 resource "aws_eks_node_group" "demo" {
   cluster_name    = aws_eks_cluster.demo.name
   node_group_name = "demo"
-  instance_types = t3.medium
+  instance_types = ["t3.medium"]
   node_role_arn   = aws_iam_role.demo-node.arn
   subnet_ids      = aws_subnet.demo[*].id
 
