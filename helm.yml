@@ -9,15 +9,7 @@
         dest: /tmp
         creates: /usr/local/bin/helm
         remote_src: yes
-
-    - name: Deploy latest version of Prometheus chart inside monitoring namespace (and create it).
-      community.kubernetes.helm:
-        name: prometheus-test
-        kubeconfig: /var/lib/jenkins/workspace/demo/config
-        chart_ref: promotheus-stable-repo/prometheus
-        release_namespace: monitoring
-        create_namespace: true
-
+        
     - name: Add stable promotheus chart repo
       community.kubernetes.helm_repository:
         name: promotheus-stable-repo
@@ -26,7 +18,15 @@
     - name: Add stable grafana chart repo
       community.kubernetes.helm_repository:
         name: grafana-stable-repo
-        repo_url: https://grafana.github.io/helm-charts      
+        repo_url: https://grafana.github.io/helm-charts
+
+    - name: Deploy latest version of Prometheus chart inside monitoring namespace (and create it).
+      community.kubernetes.helm:
+        name: prometheus-test
+        kubeconfig: /var/lib/jenkins/workspace/demo/config
+        chart_ref: promotheus-stable-repo/prometheus
+        release_namespace: monitoring
+        create_namespace: true  
 
     - name: Deploy latest version of Grafana chart inside monitoring namespace with values
       community.kubernetes.helm:
