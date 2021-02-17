@@ -17,6 +17,9 @@
         chart_ref: promotheus-stable-repo/prometheus
         release_namespace: monitoring
         create_namespace: true
+        env:
+          AWS_ACCESS_KEY_ID: "{{ AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "{{ AWS_SECRET_ACCESS_KEY }}"
 
     - name: Add stable promotheus chart repo
       community.kubernetes.helm_repository:
