@@ -10,7 +10,7 @@
         creates: /usr/local/bin/helm
         remote_src: yes
        
-     - name: Move helm binary into place.
+    - name: Move helm binary into place.
       command: cp /tmp/linux-amd64/helm /usr/local/bin/helm
       args:
         creates: /usr/bin/helm
