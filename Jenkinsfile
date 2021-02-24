@@ -57,10 +57,8 @@ pipeline {
             when { expression { params.action == 'create' } }
             steps {
                 script {
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                            sh 'terraform init'
-                            sh "terraform plan -var cluster-name=${params.cluster_name} -out ${plan}"
-                    }
+                    sh 'terraform init'
+                    sh "terraform plan -var cluster-name=${params.cluster_name} -out ${plan}"                    
                 }
             }
         }
