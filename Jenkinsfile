@@ -66,18 +66,17 @@ pipeline {
             when { expression { params.action == 'create' } }
             steps {
                 script {
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                        if (fileExists('$HOME/.kube')) {
-                            echo '.kube Directory Exists'
-                        } else {
-                            sh 'mkdir -p $HOME/.kube'
-                        }
-                        echo 'Running Terraform apply'
-                        sh 'terraform apply -auto-approve ${plan}'
-                        sh 'terraform output -raw kubeconfig > $HOME/.kube/config'
-                        sh 'sudo chown $(id -u):$(id -g) $HOME/.kube/config'
-                        sleep 30
-                        sh 'kubectl get nodes'
+                    if (fileExists('$HOME/.kube')) {
+                        echo '.kube Directory Exists'
+                     } else {
+                        sh 'mkdir -p $HOME/.kube'
+                     }
+                    echo 'Running Terraform apply'
+                    sh 'terraform apply -auto-approve ${plan}'
+                    sh 'terraform output -raw kubeconfig > $HOME/.kube/config'
+                    sh 'sudo chown $(id -u):$(id -g) $HOME/.kube/config'
+                    sleep 30
+                    sh 'kubectl get nodes'
                     }
                 }   
             }   
@@ -86,8 +85,7 @@ pipeline {
             when { expression { params.action == 'destroy' } }
             steps {
                 script {
-                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                        sh 'terraform destroy -auto-approve $plan'
+                    sh 'terraform destroy -auto-approve $plan'
                 }
             }
         }
@@ -95,7 +93,6 @@ pipeline {
     stage ('Deploy Monitoring') {
         steps {
             script {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']])
                 echo 'Deploying promethus and grafana using Ansible playbooks and Helm chars'
                 sh 'sudo yum update -y'
                 sh "wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
