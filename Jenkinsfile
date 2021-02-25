@@ -104,6 +104,7 @@ pipeline {
             }
         }
     stage ('Deploy Monitoring') {
+        when { expression { params.action == 'create' } }
         steps {
             script {
                 echo 'Deploying promethus and grafana using Ansible playbooks and Helm chars'
