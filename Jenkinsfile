@@ -7,6 +7,8 @@ pipeline {
 
     agent any
     environment {
+        AWS_ACCESS_KEY_ID     = credentials('jenkins-aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws-secret-access-key')
         VAULT_TOKEN = credentials('vault_token')
     }
 
@@ -72,38 +74,37 @@ pipeline {
             steps {
                 script {
                     sh 'terraform init'
-                    sh "terraform plan -var cluster-name=${params.cluster_name} -out ${plan}"                    
+                    sh "terraform plan -var cluster-name=${params.cluster_name} -out ${plan}"
                 }
             }
         }
+        
         stage ('Deploy Terraform Plan ==> apply') {
             when { expression { params.action == 'create' } }
             steps {
                 script {
                     if (fileExists('$HOME/.kube')) {
                         echo '.kube Directory Exists'
-                     } else {
+                    } else {
                         sh 'mkdir -p $HOME/.kube'
-                     }
+                    }
                     echo 'Running Terraform apply'
                     sh 'terraform apply -auto-approve ${plan}'
                     sh 'terraform output -raw kubeconfig > $HOME/.kube/config'
                     sh 'sudo chown $(id -u):$(id -g) $HOME/.kube/config'
                     sleep 30
                     sh 'kubectl get nodes'
-                    }
-                }   
+                }
             }   
-        }
+        }   
         stage ('Run Terraform destroy'){
             when { expression { params.action == 'destroy' } }
             steps {
                 script {
-                    sh 'terraform destroy -auto-approve $plan'
+                    sh 'terraform destroy -auto-approve $plan'                
                 }
             }
         }
-    }
     stage ('Deploy Monitoring') {
         steps {
             script {
