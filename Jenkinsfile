@@ -7,11 +7,25 @@ pipeline {
 
     agent any
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('jenkins-aws-access-key-id')
-        AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws-secret-access-key')
+        VAULT_TOKEN = credentials('vault_token')
     }
 
     stages {
+        stage('Retrieve AWS creds from vault'){
+            steps {
+                script {
+                    def host=sh(script: 'curl http://169.254.169.254/latest/meta-data/public-ipv4', returnStdout: true)
+                    echo "$host"
+                    sh "export VAULT_ADDR=http://${host}:8200"
+                    sh 'export VAULT_SKIP_VERIFY=true'
+                    sh "curl --header 'X-Vault-Token: ${VAULT_TOKEN}' --request GET http://${host}:8200/v1/AWS_CREDS/data/secret > data.json"
+                    sh 'cat data.json | jq -r .data.data.aws_access_key_id > awskeyid.txt'
+                    sh 'cat data.json | jq -r .data.data.aws_secret_access_key > awssecret.txt'
+                    AWS_ACCESS_KEY_ID = readFile('awskeyid.txt').trim()
+                    AWS_SECRET_ACCESS_KEY = readFile('awssecret.txt').trim()
+                }
+            }
+        }
         stage('clone repo') {
             steps {
                 git url:'https://github.com/Niranjankolli/EKS-Jenkins-Terraform.git', branch:'main'
