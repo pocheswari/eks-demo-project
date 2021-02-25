@@ -7,6 +7,8 @@ pipeline {
 
     agent any
     environment {
+        AWS_ACCESS_KEY_ID     = credentials('jenkins-aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws-secret-access-key')
         VAULT_TOKEN = credentials('vault_token')
     }
 
@@ -59,7 +61,15 @@ pipeline {
                         sh 'sudo chmod +x ./aws-iam-authenticator'
                         sh 'sudo mv aws-iam-authenticator /usr/bin'
                         sh "rm -rf terraform_${TF_VERSION}_linux_amd64.zip"
-                    } 
+                        echo "Copying AWS cred to ${HOME} directory"
+                        sh "mkdir -p $HOME/.aws"
+                        sh """
+                        set +x
+                        cat <<-EOF | tee $HOME/.aws/credentials
+[default]
+aws_access_key_id=${AWS_ACCESS_KEY_ID}
+aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
+                    }
                 }
                 sh 'terraform version'
                 sh 'aws-iam-authenticator help'
