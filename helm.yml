@@ -49,4 +49,4 @@
           service:
             type: "LoadBalancer"
         values_files:
-          - /var/lib/jenkins/workspace/demo/grafana.yaml
+          - grafana.yaml
