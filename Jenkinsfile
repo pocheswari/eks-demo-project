@@ -111,24 +111,46 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                 }
             }
         }
-    stage ('Deploy Monitoring') {
-        when { expression { params.action == 'create' } }
-        steps {
-            script {
-                echo 'Deploying promethus and grafana using Ansible playbooks and Helm chars'
-                sh 'sudo yum update -y'
-                sh "wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
-                sh 'sudo yum install epel-release-latest-7.noarch.rpm -y'
-                sh 'sudo yum update -y'
-                sh 'sudo yum install ansible -y'
-                sh 'ansible-galaxy collection install -r requirements.yml'
-                sh 'ansible-playbook helm.yml --user jenkins'
-                sh 'sleep 20'
-                sh 'kubectl get all -n monitoring'
-                sh 'export ELB=$(kubectl get svc -n monitoring grafana-test -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
-                echo 'http://"$ELB"'
+        stage ('Deploy Monitoring') {
+            when { expression { params.action == 'create' } }
+            steps {
+                script {
+                    echo 'Deploying promethus and grafana using Ansible playbooks and Helm chars'
+                    sh 'sudo yum update -y'
+                    sh "wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+                    sh 'sudo yum install epel-release-latest-7.noarch.rpm -y'
+                    sh 'sudo yum update -y'
+                    sh 'sudo yum install ansible -y'
+                    sh 'ansible-galaxy collection install -r requirements.yml'
+                    sh 'ansible-playbook helm.yml --user jenkins'
+                    sh 'sleep 20'
+                    sh 'kubectl get all -n monitoring'
+                    sh 'export ELB=$(kubectl get svc -n monitoring grafana-test -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
+                    echo "http://${ELB}"
+                }
             }
-         }
-      }
-   }
+        }
+        stage('Deploying sample application to EKS cluster') {
+            when { expression { params.deployapp == 'true' } }
+            steps {
+                script{
+                    dir('python-jinja2-login'){
+                        git url:'https://github.com/kodekolli/python-jinja2-login.git', branch:'main'
+                        echo "Building docker image"
+                        dockerImage = docker.build("niranjankolli/eks-demo-lab:${env.BUILD_ID}")
+                        echo "Pushing the image to registry"
+                        docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
+                            dockerImage.push("latest")
+                            dockerImage.push("${env.BUILD_ID}")
+                        }
+                        echo "Deploy app to EKS cluster"
+                        sh 'kubectl apply -f app.yaml -n default'
+                        sleep 10
+                        sh 'export APPELB=$(kubectl get svc -n default helloapp-svc -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
+                        echo "http://${APPELB}"
+                    }
+                }
+            }
+        }
+    }
 }
