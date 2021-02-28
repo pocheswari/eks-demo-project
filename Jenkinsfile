@@ -9,6 +9,8 @@ pipeline {
     agent any
     environment {
         VAULT_TOKEN = credentials('vault_token')
+        registryCredential = 'DockerHub'
+        dockerImage = ''
     }
 
     stages {
@@ -131,9 +133,9 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
             }
         }
         stage('Deploying sample application to EKS cluster') {
-            when { expression { params.deployapp == 'true' } }
             steps {
                 script{
+                    if(deployapp){
                     dir('python-jinja2-login'){
                         git url:'https://github.com/kodekolli/python-jinja2-login.git', branch:'main'
                         echo "Building docker image"
@@ -144,10 +146,10 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                             dockerImage.push("${env.BUILD_ID}")
                         }
                         echo "Deploy app to EKS cluster"
-                        sh 'kubectl apply -f app.yaml -n default'
+                        sh 'kubectl apply -f app.yaml -n default --kubeconfig=/var/lib/jenkins/.kube/config'
                         sleep 10
                         sh 'export APPELB=$(kubectl get svc -n default helloapp-svc -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
-                    }
+                    }}
                 }
             }
         }
