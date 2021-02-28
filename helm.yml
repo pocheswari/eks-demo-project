@@ -30,7 +30,8 @@
         name: prometheus-test
         chart_ref: promotheus-stable-repo/prometheus
         release_namespace: monitoring
-        create_namespace: true 
+        create_namespace: true
+        kubeconfig: /var/lib/jenkins/.kube/config
         values:
           persistence:
             storageClassName: "gp2"
@@ -40,6 +41,7 @@
         name: grafana-test
         chart_ref: grafana-stable-repo/grafana
         release_namespace: monitoring
+        kubeconfig: /var/lib/jenkins/.kube/config
         values:
           replicas: 2
           adminPassword: 'welcome'
