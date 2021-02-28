@@ -3,6 +3,7 @@ pipeline {
         choice(name: 'action', choices: 'create\ndestroy', description: 'Action to create AWS EKS cluster')
         string(name: 'cluster_name', defaultValue: 'demo', description: 'EKS cluster name')
         string(name: 'terraform_version', defaultValue: '0.14.6', description: 'Terraform version')
+        booleanParam(name: 'deployapp', defaultValue: true, description: 'This parameter is used during webhook from github')
     }
 
     agent any
