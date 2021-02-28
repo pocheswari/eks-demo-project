@@ -127,7 +127,6 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                     sh 'sleep 20'
                     sh 'kubectl get all -n monitoring'
                     sh 'export ELB=$(kubectl get svc -n monitoring grafana-test -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
-                    echo "http://${ELB}"
                 }
             }
         }
@@ -148,7 +147,6 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                         sh 'kubectl apply -f app.yaml -n default'
                         sleep 10
                         sh 'export APPELB=$(kubectl get svc -n default helloapp-svc -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
-                        echo "http://${APPELB}"
                     }
                 }
             }
