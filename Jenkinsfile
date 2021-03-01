@@ -101,6 +101,8 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                     sh 'terraform apply -auto-approve ${plan}'
                     sh 'terraform output -raw kubeconfig > $HOME/.kube/config'
                     sh 'sudo chown $(id -u):$(id -g) $HOME/.kube/config'
+                    sh 'sudo mkdir -p /root/.kube'
+                    sh 'cp $HOME/.kube/config /root/.kube'
                     sleep 30
                     sh 'kubectl get nodes'
                 }
@@ -127,8 +129,9 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                     sh 'ansible-galaxy collection install -r requirements.yml'
                     sh 'ansible-playbook helm.yml --user jenkins'
                     sh 'sleep 20'
-                    sh 'kubectl get all -n monitoring'
-                    sh 'export ELB=$(kubectl get svc -n monitoring grafana-test -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
+                    sh 'kubectl get all -n grafana'
+                    sh 'kubectl get all -n prometheus'
+                    sh 'export ELB=$(kubectl get svc -n grafana grafana -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
                 }
             }
         }
