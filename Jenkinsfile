@@ -31,7 +31,7 @@ pipeline {
         }
         stage('clone repo') {
             steps {
-                git url:'https://github.com/Niranjankolli/EKS-Jenkins-Terraform.git', branch:'main'
+                git url:'https://github.com/kodekolli/eks-demo-project.git', branch:'main'
             }
         }
         stage('Prepare the setup') {
