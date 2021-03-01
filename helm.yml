@@ -27,9 +27,9 @@
 
     - name: Deploy latest version of Prometheus chart inside monitoring namespace (and create it).
       community.kubernetes.helm:
-        name: prometheus-test
+        name: prometheus
         chart_ref: promotheus-stable-repo/prometheus
-        release_namespace: monitoring
+        release_namespace: prometheus
         create_namespace: true
         kubeconfig: /var/lib/jenkins/.kube/config
         values:
