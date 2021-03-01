@@ -40,7 +40,7 @@
       community.kubernetes.helm:
         name: grafana
         chart_ref: grafana-stable-repo/grafana
-        release_namespace: grafana
+        release_namespace: monitoring
         kubeconfig: /var/lib/jenkins/.kube/config
         values:
           replicas: 2
