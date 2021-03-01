@@ -38,9 +38,9 @@
 
     - name: Deploy latest version of Grafana chart inside monitoring namespace with values
       community.kubernetes.helm:
-        name: grafana-test
+        name: grafana
         chart_ref: grafana-stable-repo/grafana
-        release_namespace: monitoring
+        release_namespace: grafana
         kubeconfig: /var/lib/jenkins/.kube/config
         values:
           replicas: 2
