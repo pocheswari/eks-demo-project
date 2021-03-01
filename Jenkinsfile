@@ -131,9 +131,9 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                     sh 'ansible-galaxy collection install -r requirements.yml'
                     sh 'ansible-playbook helm.yml --user jenkins'
                     sh 'sleep 20'
-                    sh 'kubectl get all -n monitoring'
+                    sh 'kubectl get all -n grafana'
                     sh 'kubectl get all -n prometheus'
-                    sh 'export ELB=$(kubectl get svc -n monitoring grafana -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
+                    sh 'export ELB=$(kubectl get svc -n grafana grafana -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
                 }
             }
         }
