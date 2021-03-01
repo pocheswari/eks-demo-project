@@ -102,7 +102,9 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                     sh 'terraform output -raw kubeconfig > $HOME/.kube/config'
                     sh 'sudo chown $(id -u):$(id -g) $HOME/.kube/config'
                     sh 'sudo mkdir -p /root/.kube'
+                    sh 'sudo mkdir -p /root/.aws'
                     sh 'sudo cp $HOME/.kube/config /root/.kube'
+                    sh 'sudo cp $HOME/.aws/credentials /root/.aws'
                     sleep 30
                     sh 'kubectl get nodes'
                 }
