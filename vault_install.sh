@@ -14,7 +14,7 @@ yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.
 yum -y install consul
 cp /bin/consul /usr/local/bin/
 consul --version
-cat <<EOF | sudo tee /usr/local/etc/consul/consul/consul_s1.json
+cat <<EOF | sudo tee /usr/local/etc/consul/consul_s1.json
 {
   "server": true,
   "node_name": "consul_s1",
