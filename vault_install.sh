@@ -12,6 +12,7 @@ HOST=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
 yum install -y yum-utils
 yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
 yum -y install consul
+cp /bin/consul /usr/local/bin/
 consul --version
 cat <<EOF | sudo tee /usr/local/etc/consul/consul/consul_s1.json
 {
