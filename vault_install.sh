@@ -59,7 +59,7 @@ WantedBy=multi-user.target
 EOF
 systemctl start consul
 systemctl status consul
-
+sleep 30
 cat <<EOF | sudo tee /etc/vault/config.hcl
 disable_cache = true
 disable_mlock = true
