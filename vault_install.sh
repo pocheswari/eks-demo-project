@@ -132,5 +132,6 @@ sleep 2
 vault status
 echo "Vault server is initialized and unsealed"
 export ROOT_TOKEN=`cat unsealkeys.txt | grep -i "Initial Root Token:" | awk '{print $4}'`
-echo "Use the below URL http://$HOST:8200 to login"
-echo "ROOT TOKEN for vault login ====> $ROOT_TOKEN"
+echo "Vault URL http://$HOST:8200 to login"
+echo "Consul URL http://$HOST:8500/ui"
+echo "Token for vault login ====> $ROOT_TOKEN"
