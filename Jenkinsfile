@@ -9,6 +9,7 @@ pipeline {
     agent any
     environment {
         VAULT_TOKEN = credentials('vault_token')
+        USER_CREDENTIALS = credentials('DockerHub')
         registryCredential = 'DockerHub'
         dockerImage = ''
     }
@@ -144,7 +145,7 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                     dir('python-jinja2-login'){
                         git url:'https://github.com/kodekolli/python-jinja2-login.git', branch:'main'
                         echo "Building docker image"
-                        dockerImage = docker.build("niranjankolli/eks-demo-lab:${env.BUILD_ID}")
+                        dockerImage = docker.build("${USER_CREDENTIALS_USR}/eks-demo-lab:${env.BUILD_ID}")
                         echo "Pushing the image to registry"
                         docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
                             dockerImage.push("latest")
