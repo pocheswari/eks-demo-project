@@ -8,6 +8,50 @@ mkdir /etc/vault
 useradd -r vault
 chown -R vault:vault /opt/vault
 HOST=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
+#Consul installation
+yum install -y yum-utils
+yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+yum -y install consul
+consul --version
+cat <<EOF | sudo tee /usr/local/etc/consul/consul/consul_s1.json
+{
+  "server": true,
+  "node_name": "consul_s1",
+  "datacenter": "dc1",
+  "data_dir": "/var/consul/data",
+  "ui": true,
+  "rejoin_after_leave": true,
+  "log_level": "DEBUG",
+  "enable_syslog": true
+}
+EOF
+cat <<EOF | sudo tee /etc/systemd/system/consul.service
+[Unit]
+Description=Consul server agent
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+User=consul
+Group=consul
+PIDFile=/var/run/consul/consul.pid
+PermissionsStartOnly=true
+ExecStartPre=-/bin/mkdir -p /var/run/consul
+ExecStartPre=/bin/chown -R consul:consul /var/run/consul
+ExecStart=/usr/local/bin/consul agent \
+    -config-file=/usr/local/etc/consul/consul_s1.json \
+    -pid-file=/var/run/consul/consul.pid
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+KillSignal=SIGTERM
+Restart=on-failure
+RestartSec=42s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl start consul
+systemctl status consul
 
 cat <<EOF | sudo tee /etc/vault/config.hcl
 disable_cache = true
@@ -17,9 +61,10 @@ listener "tcp" {
    address          = "0.0.0.0:8200"
    tls_disable      = 1
 }
-storage "file" {
-   path  = "/opt/vault/data"
- }
+storage "consul" {
+  address = "localhost:8500"
+  path    = "vault/"
+}
 api_addr         = "http://0.0.0.0:8200"
 max_lease_ttl         = "10h"
 default_lease_ttl    = "10h"
