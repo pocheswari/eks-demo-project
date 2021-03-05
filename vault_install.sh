@@ -8,19 +8,25 @@ mkdir /etc/vault
 useradd -r vault
 chown -R vault:vault /opt/vault
 HOST=`curl http://169.254.169.254/latest/meta-data/public-ipv4`
+IP4=`hostname -i`
 #Consul installation
 yum install -y yum-utils
 yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
 yum -y install consul
-cp /bin/consul /usr/local/bin/
 consul --version
+mkdir -p /var/consul/data
+mkdir -p /usr/local/etc/consul
+chmod -R 777 /var/consul/data
 cat <<EOF | sudo tee /usr/local/etc/consul/consul_s1.json
 {
   "server": true,
-  "node_name": "consul_s1",
+  "node_name": "consuls1",
   "datacenter": "dc1",
   "data_dir": "/var/consul/data",
+  "bootstrap": true,
   "ui": true,
+  "bind_addr": "$IP4",
+  "client_addr": "0.0.0.0",
   "rejoin_after_leave": true,
   "log_level": "DEBUG",
   "enable_syslog": true
@@ -39,7 +45,7 @@ PIDFile=/var/run/consul/consul.pid
 PermissionsStartOnly=true
 ExecStartPre=-/bin/mkdir -p /var/run/consul
 ExecStartPre=/bin/chown -R consul:consul /var/run/consul
-ExecStart=/usr/local/bin/consul agent \
+ExecStart=/bin/consul agent \
     -config-file=/usr/local/etc/consul/consul_s1.json \
     -pid-file=/var/run/consul/consul.pid
 ExecReload=/bin/kill -HUP $MAINPID
