@@ -141,7 +141,6 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
         stage('Deploying sample application to EKS cluster') {
             steps {
                 script{
-                    if(deployapp){
                     dir('python-jinja2-login'){
                         git url:'https://github.com/kodekolli/python-jinja2-login.git', branch:'main'
                         echo "Building docker image"
@@ -155,7 +154,7 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                         sh 'kubectl apply -f app.yaml -n default --kubeconfig=/var/lib/jenkins/.kube/config'
                         sleep 10
                         sh 'export APPELB=$(kubectl get svc -n default helloapp-svc -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
-                    }}
+                    }
                 }
             }
         }
