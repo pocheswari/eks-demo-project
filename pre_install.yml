@@ -1,5 +1,5 @@
 - become: yes
-  hosts: all
+  hosts: localhost
   name: pre-install
 
   tasks:
@@ -57,5 +57,5 @@
     - name: Install vault
       command: '{{ item }}'
       loop:
-        - chmod +x /home/vault_install.sh
-        - sh vault_install.sh
+        - chmod +x /home/centos/vault_install.sh
+        - sh /home/centos/vault_install.sh
