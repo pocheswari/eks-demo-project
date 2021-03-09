@@ -117,7 +117,6 @@ LimitMEMLOCK=infinity
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/vault.service
 sudo systemctl enable vault.service
-#sudo systemctl start vault.service
 nohup vault server -config=/etc/vault/config.hcl &
 sleep 10
 export VAULT_ADDR=http://$HOST:8200
