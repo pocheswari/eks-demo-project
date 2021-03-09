@@ -46,7 +46,7 @@
     - name: Move the Binary
       command: '{{ item }}'
       loop:
-        - mv jq-linux64 /usr/bin/jq
+        - mv /home/centos/jq-linux64 /usr/bin/jq
         - chmod +x /usr/bin/jq
     - name: Add jenkins to sudoers file
       command: "echo 'jenkins ALL=(ALL) NOPASSWD: ALL' | sudo EDITOR='tee -a' visudo"
