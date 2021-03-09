@@ -48,14 +48,3 @@
       loop:
         - mv /home/centos/jq-linux64 /usr/bin/jq
         - chmod +x /usr/bin/jq
-    - name: Add jenkins to sudoers file
-      command: "echo 'jenkins ALL=(ALL) NOPASSWD: ALL' | sudo EDITOR='tee -a' visudo"
-    - name: Download vault_install file from github
-      get_url:
-        url: https://raw.githubusercontent.com/kodekolli/eks-demo-project/main/vault_install.sh
-        dest: /home/centos
-    - name: Install vault
-      command: '{{ item }}'
-      loop:
-        - chmod +x /home/centos/vault_install.sh
-        - sh /home/centos/vault_install.sh
