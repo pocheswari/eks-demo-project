@@ -1,0 +1,62 @@
+- become: yes
+  hosts: all
+  name: pre-install
+
+  tasks:
+    - name: Retrieve docker repo
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+    - name: Retrieve Jenkins repo
+      command: '{{ item }}'
+      loop:
+        - yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    - name: Install Dependency packages
+      yum:
+        name: '{{ item }}'
+        state: present
+        update_cache: True
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - java-1.8.0-openjdk-devel
+        - jenkins
+        - wget
+        - git
+        - curl
+        - unzip
+    - name: Enable the docker and jenkins services
+      command: systemctl enable "{{ item }}"
+      loop:
+        - docker
+        - jenkins
+    - name: Start docker and jenkins services
+      command: systemctl start "{{ item }}"
+      loop:
+        - docker
+        - jenkins
+    - name: Add the user 'jenkins' and add it to 'sudo' and docker
+      user:
+        name: jenkins
+        group: docker
+    - name: Download jq binary
+      get_url:
+        url: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+        dest: /home/centos
+    - name: Move the Binary
+      command: '{{ item }}'
+      loop:
+        - mv jq-linux64 /usr/bin/jq
+        - chmod +x /usr/bin/jq
+    - name: Add jenkins to sudoers file
+      command: "echo 'jenkins ALL=(ALL) NOPASSWD: ALL' | sudo EDITOR='tee -a' visudo"
+    - name: Download vault_install file from github
+      get_url:
+        url: https://raw.githubusercontent.com/kodekolli/eks-demo-project/main/vault_install.sh
+        dest: /home/centos
+    - name: Install vault
+      command: '{{ item }}'
+      loop:
+        - chmod +x /home/vault_install.sh
+        - sh vault_install.sh
