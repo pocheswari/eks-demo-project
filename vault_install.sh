@@ -130,7 +130,9 @@ vault operator unseal $KEY2
 sleep 2
 vault status
 echo "Vault server is initialized and unsealed"
+JNK_PWD=`sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
 export ROOT_TOKEN=`cat unsealkeys.txt | grep -i "Initial Root Token:" | awk '{print $4}'`
 echo "Vault URL http://$HOST:8200 to login"
 echo "Consul URL http://$HOST:8500/ui"
 echo "Token for vault login ====> $ROOT_TOKEN"
+echo "Jenkins initial admin password ====> $JNK_PWD"
