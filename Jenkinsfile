@@ -3,35 +3,37 @@ pipeline {
         choice(name: 'action', choices: 'create\ndestroy', description: 'Action to create AWS EKS cluster')
         string(name: 'cluster_name', defaultValue: 'demo', description: 'EKS cluster name')
         string(name: 'terraform_version', defaultValue: '0.14.6', description: 'Terraform version')
+        string(name: 'git_user', defaultValue: 'kodekolli', description: 'Enter github username')
     }
 
     agent any
     environment {
         VAULT_TOKEN = credentials('vault_token')
-        USER_CREDENTIALS = credentials('DockerHub')
         registryCredential = 'DockerHub'
         dockerImage = ''
     }
 
     stages {
-        stage('Retrieve AWS creds from vault'){
+        stage('Retrieve AWS creds and Docker creds from vault'){
             steps {
                 script {
                     def host=sh(script: 'curl http://169.254.169.254/latest/meta-data/public-ipv4', returnStdout: true)
                     echo "$host"
                     sh "export VAULT_ADDR=http://${host}:8200"
                     sh 'export VAULT_SKIP_VERIFY=true'
-                    sh "curl --header 'X-Vault-Token: ${VAULT_TOKEN}' --request GET http://${host}:8200/v1/AWS_CREDS/data/secret > data.json"
-                    sh 'cat data.json | jq -r .data.data.aws_access_key_id > awskeyid.txt'
-                    sh 'cat data.json | jq -r .data.data.aws_secret_access_key > awssecret.txt'
+                    sh "curl --header 'X-Vault-Token: ${VAULT_TOKEN}' --request GET http://${host}:8200/v1/MY_CREDS/data/secret > mycreds.json"
+                    sh 'cat mycreds.json | jq -r .data.data.aws_access_key_id > awskeyid.txt'
+                    sh 'cat mycreds.json | jq -r .data.data.aws_secret_access_key > awssecret.txt'
+                    sh 'cat mycreds.json | jq -r .data.data.docker_username > docker_username.txt'
                     AWS_ACCESS_KEY_ID = readFile('awskeyid.txt').trim()
                     AWS_SECRET_ACCESS_KEY = readFile('awssecret.txt').trim()
+                    DOCKER_USR = readFile('docker_username.txt').trim()            
                 }
             }
         }
         stage('clone repo') {
             steps {
-                git url:'https://github.com/kodekolli/eks-demo-project.git', branch:'main'
+                git url:"https://github.com/${params.git_user}/eks-demo-project.git", branch:'master'
             }
         }
         stage('Prepare the setup') {
@@ -65,11 +67,13 @@ pipeline {
                     cat <<-EOF | tee $HOME/.aws/credentials
 [default]
 aws_access_key_id=${AWS_ACCESS_KEY_ID}
-aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""                    
+aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
+                    
                 }
                 sh 'terraform version'
                 sh 'aws-iam-authenticator help'
                 sh 'kubectl version --short --client'
+
             }
         }
         stage ('Run Terraform Plan') {
@@ -103,14 +107,6 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                     sh 'kubectl get nodes'
                 }
             }   
-        }   
-        stage ('Run Terraform destroy'){
-            when { expression { params.action == 'destroy' } }
-            steps {
-                script {
-                    sh 'terraform destroy -auto-approve $plan'                
-                }
-            }
         }
         stage ('Deploy Monitoring') {
             when { expression { params.action == 'create' } }
@@ -129,10 +125,11 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
         stage('Deploying sample application to EKS cluster') {
             steps {
                 script{
+                    if(deployapp){
                     dir('python-jinja2-login'){
                         git url:'https://github.com/kodekolli/python-jinja2-login.git', branch:'main'
                         echo "Building docker image"
-                        dockerImage = docker.build("${USER_CREDENTIALS_USR}/eks-demo-lab:${env.BUILD_ID}")
+                        dockerImage = docker.build("${DOCKER_USR}/eks-demo-lab:${env.BUILD_ID}")
                         echo "Pushing the image to registry"
                         docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
                             dockerImage.push("latest")
@@ -142,7 +139,18 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                         sh 'kubectl apply -f app.yaml -n default --kubeconfig=/var/lib/jenkins/.kube/config'
                         sleep 10
                         sh 'export APPELB=$(kubectl get svc -n default helloapp-svc -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
-                    }
+                    }}
+                }
+            }
+        }
+        stage ('Run Terraform destroy'){
+            when { expression { params.action == 'destroy' } }
+            steps {
+                script {
+                    
+                    sh 'terraform destroy -auto-approve $plan'
+                    sh 'rpm -e epel-release-7-13.noarch'
+
                 }
             }
         }
