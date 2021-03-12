@@ -69,19 +69,8 @@
     - name: Move the Binary
       command: '{{ item }}'
       loop:
-        - mv jq-linux64 /usr/bin/jq
+        - mv /home/centos/jq-linux64 /usr/bin/jq
         - chmod +x /usr/bin/jq
-    - name: Add jenkins to sudoers file
-      command: "echo 'jenkins ALL=(ALL) NOPASSWD: ALL' | sudo EDITOR='tee -a' visudo"
-    - name: Download vault_install file from github
-      get_url:
-        url: https://raw.githubusercontent.com/kodekolli/eks-demo-project/main/vault_install.sh
-        dest: /home/centos
-    - name: Install vault
-      command: '{{ item }}'
-      loop:
-        - chmod +x /home/vault_install.sh
-        - sh vault_install.sh
     - name: Download SonarQube docker-compose.yml
       get_url:
         url: https://raw.githubusercontent.com/kodekolli/eks-demo-project/main/docker-compose.yml
