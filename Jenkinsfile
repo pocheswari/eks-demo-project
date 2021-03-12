@@ -131,6 +131,8 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
             steps {
                 script {
                     dir('python-jinja2-login'){
+                        def host=sh(script: 'curl http://169.254.169.254/latest/meta-data/public-ipv4', returnStdout: true)
+                        echo "$host"
                         git url:"https://github.com/${params.git_user}/python-jinja2-login.git", branch:'main'
                         withSonarQubeEnv("SonarJenkins") {
                             sh "/opt/sonarscanner/bin/sonar-scanner \
