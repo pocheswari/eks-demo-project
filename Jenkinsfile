@@ -9,7 +9,6 @@ pipeline {
     agent any
     environment {
         VAULT_TOKEN = credentials('vault_token')
-        SONAR_TOKEN = credentials('sonar_token')
         USER_CREDENTIALS = credentials('DockerHub')
         registryCredential = 'DockerHub'
         dockerImage = ''
@@ -27,10 +26,10 @@ pipeline {
                     sh "curl --header 'X-Vault-Token: ${VAULT_TOKEN}' --request GET http://${host}:8200/v1/MY_CREDS/data/secret > mycreds.json"
                     sh 'cat mycreds.json | jq -r .data.data.aws_access_key_id > awskeyid.txt'
                     sh 'cat mycreds.json | jq -r .data.data.aws_secret_access_key > awssecret.txt'
-                    sh 'cat mycreds.json | jq -r .data.data.docker_username > docker_username.txt'
+                    sh 'cat mycreds.json | jq -r .data.data.sonar_token > sonar_token.txt'
                     AWS_ACCESS_KEY_ID = readFile('awskeyid.txt').trim()
                     AWS_SECRET_ACCESS_KEY = readFile('awssecret.txt').trim()
-                    DOCKER_USR = readFile('docker_username.txt').trim()            
+                    SONAR_TOKEN = readFile('sonar_token.txt').trim()            
                 }
             }
         }
