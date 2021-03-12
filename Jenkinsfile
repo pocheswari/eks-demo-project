@@ -9,12 +9,15 @@ pipeline {
     agent any
     environment {
         VAULT_TOKEN = credentials('vault_token')
+        SONAR_TOKEN = credentials('sonar_token')
+        USER_CREDENTIALS = credentials('DockerHub')
         registryCredential = 'DockerHub'
         dockerImage = ''
     }
 
     stages {
         stage('Retrieve AWS creds and Docker creds from vault'){
+            when { expression { params.action == 'create' } }
             steps {
                 script {
                     def host=sh(script: 'curl http://169.254.169.254/latest/meta-data/public-ipv4', returnStdout: true)
@@ -37,6 +40,7 @@ pipeline {
             }
         }
         stage('Prepare the setup') {
+            when { expression { params.action == 'create' } }
             steps {
                 script {
                     currentBuild.displayName = "#" + env.BUILD_ID + " " + params.action + " eks-" + params.cluster_name
@@ -46,6 +50,7 @@ pipeline {
             }
         }
         stage('Check terraform PATH'){
+            when { expression { params.action == 'create' } }
             steps {
                 script{
                     echo 'Installing Terraform'
@@ -122,20 +127,38 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                 }
             }
         }
+        stage('Code Quality Check via SonarQube') {
+            steps {
+                script {
+                    dir('python-jinja2-login'){
+                        git url:"https://github.com/${params.git_user}/python-jinja2-login.git", branch:'main'
+                        withSonarQubeEnv("SonarJenkins") {
+                            sh "/opt/sonarscanner/bin/sonar-scanner \
+                            -Dsonar.projectKey=python-login \
+                            -Dsonar.projectBaseDir=/var/lib/jenkins/workspace/$JOB_NAME/python-jinja2-login \
+                            -Dsonar.sources=. \
+                            -Dsonar.language=py \
+                            -Dsonar.host.url=http://${host}:9000 \
+                            -Dsonar.login=${SONAR_TOKEN}"
+                        }
+                    }
+                }
+            }
+        }
         stage('Deploying sample application to EKS cluster') {
+            when { expression { params.action == 'create' } }
             steps {
                 script{
                     dir('python-jinja2-login'){
-                        git url:'https://github.com/kodekolli/python-jinja2-login.git', branch:'main'
                         echo "Building docker image"
-                        dockerImage = docker.build("${DOCKER_USR}/eks-demo-lab:${env.BUILD_ID}")
+                        dockerImage = docker.build("${USER_CREDENTIALS_USR}/eks-demo-lab:${env.BUILD_ID}")
                         echo "Pushing the image to registry"
                         docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
                             dockerImage.push("latest")
                             dockerImage.push("${env.BUILD_ID}")
                         }
                         echo "Deploy app to EKS cluster"
-                        sh 'kubectl apply -f app.yaml -n default --kubeconfig=/var/lib/jenkins/.kube/config'
+                        sh 'ansible-playbook python-app.yml --user jenkins'
                         sleep 10
                         sh 'export APPELB=$(kubectl get svc -n default helloapp-svc -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
                     }
@@ -146,10 +169,15 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
             when { expression { params.action == 'destroy' } }
             steps {
                 script {
-                    
-                    sh 'terraform destroy -auto-approve $plan'
+                    sh 'aws elb describe-load-balancers > elb.json'
+                    sh 'cat elb.json | jq -r .LoadBalancerDescriptions[0].LoadBalancerName > LB1.txt'
+                    sh 'cat elb.json | jq -r .LoadBalancerDescriptions[1].LoadBalancerName > LB2.txt'
+                    AWS_LB1 = readFile('LB1.txt').trim()
+                    AWS_LB2 = readFile('LB2.txt').trim()
+                    sh 'aws elb delete-load-balancer --load-balancer-name $AWS_LB1'
+                    sh 'aws elb delete-load-balancer --load-balancer-name $AWS_LB2'
                     sh 'rpm -e epel-release-7-13.noarch'
-
+                    sh 'terraform destroy -auto-approve $plan'                    
                 }
             }
         }
