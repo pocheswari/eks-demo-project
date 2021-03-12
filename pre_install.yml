@@ -60,7 +60,7 @@
     - name: Move AWS CLI binary
       command: '{{ item }}'
       loop:
-        - unzip /home/centos/awscli-exe-linux-x86_64.zip
+        - unzip /home/centos/awscli-exe-linux-x86_64.zip -d /home/centos
         - sh /home/centos/aws/install --bin-dir /usr/bin
     - name: Download jq binary
       get_url:
