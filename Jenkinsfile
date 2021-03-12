@@ -177,9 +177,9 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                     sh 'cat elb.json | jq -r .LoadBalancerDescriptions[1].LoadBalancerName > LB2.txt'
                     AWS_LB1 = readFile('LB1.txt').trim()
                     AWS_LB2 = readFile('LB2.txt').trim()
-                    sh 'aws elb delete-load-balancer --load-balancer-name $AWS_LB1'
-                    sh 'aws elb delete-load-balancer --load-balancer-name $AWS_LB2'
-                    sh 'rpm -e epel-release-7-13.noarch'
+                    sh "aws elb delete-load-balancer --load-balancer-name ${AWS_LB1}"
+                    sh "aws elb delete-load-balancer --load-balancer-name ${AWS_LB2}"
+                    sh 'sudo rpm -e epel-release-7-13.noarch'
                     sh 'terraform destroy -auto-approve $plan'                    
                 }
             }
