@@ -79,7 +79,7 @@
       command: '{{ item }}'
       loop:
         - mkdir /data
-        - chmod -R 755 /data
+        - chmod -R 777 /data
         - sysctl -w vm.max_map_count=262144
         - sysctl -w fs.file-max=65536
         - ulimit -n 65536
