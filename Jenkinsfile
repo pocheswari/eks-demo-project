@@ -128,6 +128,7 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
             }
         }
         stage('Code Quality Check via SonarQube') {
+            when { expression { params.action == 'create' } }
             steps {
                 script {
                     dir('python-jinja2-login'){
