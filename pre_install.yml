@@ -51,8 +51,8 @@
     - name: Unzip SonarQube Scanner
       command: '{{ item }}'
       loop:
-        - unzip /opt/sonar-scanner-cli-4.6.0.2311-linux.zip
-        - mv /tmp/sonar-scanner-cli-4.6.0.2311-linux /opt/sonarscanner
+        - unzip /opt/sonar-scanner-cli-4.6.0.2311-linux.zip -d /opt
+        - mv /opt/sonar-scanner-4.6.0.2311-linux /opt/sonarscanner
     - name: Download AWS CLI
       get_url:
         url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
