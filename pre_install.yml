@@ -1,5 +1,5 @@
 - become: yes
-  hosts: localhost
+  hosts: all
   name: pre-install
 
   tasks:
@@ -19,9 +19,11 @@
       loop:
         - docker-ce
         - docker-ce-cli
+        - docker-compose
         - containerd.io
         - java-1.8.0-openjdk-devel
         - jenkins
+        - wget
         - git
         - curl
         - unzip
@@ -30,15 +32,36 @@
       loop:
         - docker
         - jenkins
-    - name: Start docker and jenkins services
+    - name: Start docker services
       command: systemctl start "{{ item }}"
       loop:
         - docker
-        - jenkins
     - name: Add the user 'jenkins' and add it to 'sudo' and docker
       user:
         name: jenkins
         group: docker
+    - name: Start jenkins services
+      command: systemctl start "{{ item }}"
+      loop:
+        - jenkins
+    - name: Download SonarQube Scanner
+      get_url:
+        url: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.0.2311-linux.zip
+        dest: /opt
+    - name: Unzip SonarQube Scanner
+      command: '{{ item }}'
+      loop:
+        - unzip /opt/sonar-scanner-cli-4.6.0.2311-linux.zip.zip
+        - mv /opt/sonar-scanner-cli-4.6.0.2311-linux /opt/sonarscanner
+    - name: Download AWS CLI
+      get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /home/centos
+    - name: Move AWS CLI binary
+      command: '{{ item }}'
+      loop:
+        - unzip /home/centos/awscli-exe-linux-x86_64.zip
+        - sh /home/centos/aws/install --bin-dir /usr/bin
     - name: Download jq binary
       get_url:
         url: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
@@ -46,5 +69,30 @@
     - name: Move the Binary
       command: '{{ item }}'
       loop:
-        - mv /home/centos/jq-linux64 /usr/bin/jq
+        - mv jq-linux64 /usr/bin/jq
         - chmod +x /usr/bin/jq
+    - name: Add jenkins to sudoers file
+      command: "echo 'jenkins ALL=(ALL) NOPASSWD: ALL' | sudo EDITOR='tee -a' visudo"
+    - name: Download vault_install file from github
+      get_url:
+        url: https://raw.githubusercontent.com/kodekolli/eks-demo-project/main/vault_install.sh
+        dest: /home/centos
+    - name: Install vault
+      command: '{{ item }}'
+      loop:
+        - chmod +x /home/vault_install.sh
+        - sh vault_install.sh
+    - name: Download SonarQube docker-compose.yml
+      get_url:
+        url: https://raw.githubusercontent.com/kodekolli/eks-demo-project/main/docker-compose.yml
+        dest: /home/centos
+    - name: Install SonarQube Server
+      command: '{{ item }}'
+      loop:
+        - mkdir /data
+        - chmod -R 755 /data
+        - sysctl -w vm.max_map_count=262144
+        - sysctl -w fs.file-max=65536
+        - ulimit -n 65536
+        - ulimit -u 4096
+        - docker-compose -f /home/centos/docker-compose.yml up -d
