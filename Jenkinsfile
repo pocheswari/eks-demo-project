@@ -172,8 +172,8 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                     sh 'aws elb describe-load-balancers > elb.json'
                     sh 'cat elb.json | jq -r .LoadBalancerDescriptions[0].LoadBalancerName > LB1.txt'
                     sh 'cat elb.json | jq -r .LoadBalancerDescriptions[1].LoadBalancerName > LB2.txt'
-                    sh 'aws ec2 describe-security-groups --filter "Name=tag:Name,Values=terraform-eks-demo" --query 'SecurityGroups[].[GroupId]' --output text > sg1.txt'
-                    sh 'aws ec2 describe-security-groups --filter "Name=tag:Name,Values=aws-eks-demo-cluster" --query 'SecurityGroups[].[GroupId]' --output text > sg2.txt'
+                    sh "aws ec2 describe-security-groups --filter 'Name=tag:Name,Values=terraform-eks-demo' --query 'SecurityGroups[].[GroupId]' --output text > sg1.txt"
+                    sh "aws ec2 describe-security-groups --filter 'Name=tag:Name,Values=aws-eks-demo-cluster' --query 'SecurityGroups[].[GroupId]' --output text > sg2.txt"
                     SG1 =  readFile('sg1.txt').trim()
                     SG2 = readFile('sg2.txt').trim()
                     AWS_LB1 = readFile('LB1.txt').trim()
