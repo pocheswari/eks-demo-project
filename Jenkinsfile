@@ -151,7 +151,7 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                 script{
                     dir('python-jinja2-login'){
                         echo "Building docker image"
-                        dockerImage = docker.build("${USER_CREDENTIALS_USR}/eks-demo-lab:${env.BUILD_ID}", "--build-arg GIT_USR=${params.git_user} .")
+                        dockerImage = docker.build("${USER_CREDENTIALS_USR}/eks-demo-lab:${env.BUILD_ID}")
                         echo "Pushing the image to registry"
                         docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
                             dockerImage.push("latest")
