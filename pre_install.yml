@@ -83,3 +83,4 @@
         - docker-compose -f /home/centos/docker-compose.yml up -d
         - sleep 5
         - chmod -R 777 /data
+        - pip3 install openshift
