@@ -75,3 +75,13 @@ resource "aws_eks_cluster" "demo" {
     aws_iam_role_policy_attachment.demo-cluster-AmazonEKSVPCResourceController,
   ]
 }
+
+terraform {
+  backend "consul" {
+    address  = "localhost:8500"
+    scheme   = "http"
+    path     = "tf/state"
+    lock     = true
+    gzip     = false
+  }
+}
