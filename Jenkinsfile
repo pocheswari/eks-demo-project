@@ -35,7 +35,7 @@ pipeline {
         }
         stage('clone repo') {
             steps {
-                git url:"https://github.com/${params.git_user}/eks-demo-project.git", branch:'master'
+                git url:"https://github.com/${params.git_user}/eks-demo-project.git", branch:'main'
             }
         }
         stage('Prepare the setup') {
