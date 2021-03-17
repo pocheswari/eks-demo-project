@@ -173,8 +173,9 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                         sh 'kubectl delete ns grafana'
                         sh 'kubectl delete ns prometheus'
                         sh 'ansible-playbook python-app.yml --user jenkins -e action=absent'
-                        sh 'terraform destroy -auto-approve $plan'
                     }
+                        sh 'terraform destroy -auto-approve $plan'
+                    
                 }
             }
         }
