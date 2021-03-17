@@ -158,7 +158,7 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                             dockerImage.push("${env.BUILD_ID}")
                         }
                         echo "Deploy app to EKS cluster"
-                        sh 'ansible-playbook python-app.yml --user jenkins'
+                        sh 'ansible-playbook python-app.yml --user jenkins -e action=present'
                         sleep 10
                         sh 'export APPELB=$(kubectl get svc -n default helloapp-svc -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
                     }
@@ -169,20 +169,10 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
             when { expression { params.action == 'destroy' } }
             steps {
                 script {
-                    sh 'aws elb describe-load-balancers > elb.json'
-                    sh 'cat elb.json | jq -r .LoadBalancerDescriptions[0].LoadBalancerName > LB1.txt'
-                    sh 'cat elb.json | jq -r .LoadBalancerDescriptions[1].LoadBalancerName > LB2.txt'
-                    sh "aws ec2 describe-security-groups --filter 'Name=tag:Name,Values=terraform-eks-demo' --query 'SecurityGroups[].[GroupId]' --output text > sg1.txt"
-                    sh "aws ec2 describe-security-groups --filter 'Name=tag:Name,Values=aws-eks-demo-cluster' --query 'SecurityGroups[].[GroupId]' --output text > sg2.txt"
-                    SG1 =  readFile('sg1.txt').trim()
-                    SG2 = readFile('sg2.txt').trim()
-                    AWS_LB1 = readFile('LB1.txt').trim()
-                    AWS_LB2 = readFile('LB2.txt').trim()
-                    sh "aws elb delete-load-balancer --load-balancer-name ${AWS_LB1}"
-                    sh "aws elb delete-load-balancer --load-balancer-name ${AWS_LB2}"
-                    sh "aws ec2 delete-security-group --group-id ${SG1}"
-                    sh "aws ec2 delete-security-group --group-id ${SG2}"
-                    sh 'terraform destroy -auto-approve $plan'                    
+                    sh 'kubectl delete ns grafana'
+                    sh 'kubectl delete ns prometheus'
+                    sh 'ansible-playbook python-app.yml --user jenkins -e action=absent'
+                    sh 'terraform destroy -auto-approve $plan'                   
                 }
             }
         }
