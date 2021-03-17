@@ -169,10 +169,12 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
             when { expression { params.action == 'destroy' } }
             steps {
                 script {
-                    sh 'kubectl delete ns grafana'
-                    sh 'kubectl delete ns prometheus'
-                    sh 'ansible-playbook python-app.yml --user jenkins -e action=absent'
-                    sh 'terraform destroy -auto-approve $plan'                   
+                    dir('python-jinja2-login'){
+                        sh 'kubectl delete ns grafana'
+                        sh 'kubectl delete ns prometheus'
+                        sh 'ansible-playbook python-app.yml --user jenkins -e action=absent'
+                        sh 'terraform destroy -auto-approve $plan'
+                    }
                 }
             }
         }
