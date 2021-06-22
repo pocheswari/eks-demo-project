@@ -27,6 +27,11 @@
         - git
         - curl
         - unzip
+    - name: Disable CSRF in jenkins
+      replace:
+        path: /etc/rc.d/init.d/jenkins
+        regexp: 'JENKINS_JAVA_OPTIONS'
+        replace: JENKINS_JAVA_OPTIONS -Dhudson.security.csrf.GlobalCrumbIssuerConfiguration.DISABLE_CSRF_PROTECTION=true
     - name: Enable the docker and jenkins services
       command: systemctl enable "{{ item }}"
       loop:
