@@ -16,17 +16,17 @@
         creates: /usr/bin/helm
         
     - name: Add stable promotheus chart repo
-      community.kubernetes.helm_repository:
+      kubernetes.core.helm_repository:
         name: promotheus-stable-repo
         repo_url: "https://prometheus-community.github.io/helm-charts"
     
     - name: Add stable grafana chart repo
-      community.kubernetes.helm_repository:
+      kubernetes.core.helm_repository:
         name: grafana-stable-repo
         repo_url: https://grafana.github.io/helm-charts         
 
     - name: Deploy latest version of Prometheus chart inside monitoring namespace (and create it).
-      community.kubernetes.helm:
+      kubernetes.core.helm:
         name: prometheus
         chart_ref: promotheus-stable-repo/prometheus
         release_namespace: prometheus
@@ -37,7 +37,7 @@
             storageClassName: "gp2"
 
     - name: Deploy latest version of Grafana chart inside monitoring namespace with values
-      community.kubernetes.helm:
+      kubernetes.core.helm:
         name: grafana
         chart_ref: grafana-stable-repo/grafana
         release_namespace: grafana
