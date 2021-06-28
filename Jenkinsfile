@@ -170,8 +170,8 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
             steps {
                 script {
                     dir('python-jinja2-login'){
-                        sh 'kubectl delete ns grafana'
-                        sh 'kubectl delete ns prometheus'
+                        sh 'kubectl delete ns grafana || true'
+                        sh 'kubectl delete ns prometheus || true'
                         sh 'ansible-playbook python-app.yml --user jenkins -e action=absent -e config=$HOME/.kube/config'
                     }
                         sh 'terraform destroy -auto-approve $plan'
