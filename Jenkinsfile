@@ -158,7 +158,7 @@ aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}"""
                             dockerImage.push("${env.BUILD_ID}")
                         }
                         echo "Deploy app to EKS cluster"
-                        sh 'ansible-playbook python-app.yml --user jenkins -e action=present'
+                        sh 'ansible-playbook python-app.yml --user jenkins -e action=present -e config=$HOME/.kube/config'
                         sleep 10
                         sh 'export APPELB=$(kubectl get svc -n default helloapp-svc -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")'
                     }
