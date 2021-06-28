@@ -41,6 +41,9 @@ resource "aws_security_group" "demo-cluster" {
   tags = {
     Name = "terraform-eks-demo"
   }
+  depends_on = [
+    aws_vpc.demo
+  ]
 }
 
 resource "aws_eks_cluster" "demo" {
@@ -56,5 +59,6 @@ resource "aws_eks_cluster" "demo" {
   depends_on = [
     aws_iam_role_policy_attachment.demo-cluster-AmazonEKSClusterPolicy,
     aws_iam_role_policy_attachment.demo-cluster-AmazonEKSVPCResourceController,
+    aws_security_group.demo-cluster
   ]
 }
