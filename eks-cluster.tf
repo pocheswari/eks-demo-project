@@ -46,7 +46,7 @@ resource "aws_security_group" "demo-cluster" {
 resource "aws_eks_cluster" "demo" {
   name     = var.cluster-name
   role_arn = aws_iam_role.demo-cluster.arn
-  version = 1.20
+  version = 1.19
 
   vpc_config {
     security_group_ids = [aws_security_group.demo-cluster.id]
